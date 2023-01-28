@@ -8,17 +8,11 @@ from video_codec import decode, encode
 from framerate import decrease
 from shape import reshape
 from super_resolution import realesrgan
-from interpolation import rife
+from interpolation import rife, DEFAULT_SCALE
 
-DEFAULT_SOURCE = './workdir'
+DEFAULT_WORKDIR = './workdir'
 
-def preprocess(file):
-    source = decode(file)
-    decrease(source)
-    reshape(source)
-    return source
-
-def process(workdir=DEFAULT_SOURCE):
+def process(workdir=DEFAULT_WORKDIR, config={}):
 
     results_dir = os.path.join(workdir, "results")
     os.makedirs(results_dir, exist_ok=True)
@@ -33,34 +27,76 @@ def process(workdir=DEFAULT_SOURCE):
 
             target = os.path.join(workdir, video_name)
             if not os.path.exists(target):
-                source = preprocess(file)
+                source = decode(file)
+                preprocess_fr = config.get('preprocess_fr')
+                if preprocess_fr:
+                    decrease(source, **preprocess_fr)
+                preprocess_shape = config.get('preprocess_shape')
+                if preprocess_shape:
+                    reshape(source, **preprocess_shape)
                 os.rename(source, target)
             source = target
 
             target = source+"-sr"
             if not os.path.exists(target) or os.path.exists(target+"-done"):
-                source = realesrgan(source)
+                sr = config.get('sr', {})
+                if config.get('intro') and os.path.exists(os.path.join(workdir, 'intro-sr')):
+                    sr['intro'] = os.path.join(workdir, 'intro-sr')
+                source = realesrgan(source, **sr)
+                if config.get('intro') and not os.path.exists(os.path.join(workdir, 'intro-sr')):
+                    os.makedirs(os.path.join(workdir, 'intro-sr'))
+                    for file in glob.glob(os.path.join(source, '*.*'))[:config.get('intro')]:
+                        shutil.copy2(file, os.path.join(workdir, 'intro-sr'))
                 os.rename(source, target)
             source = target
 
             target = source+"-interp"
-            if not os.path.exists(target) or len(os.listdir(target)) < int(len(os.listdir(source))*2.5):
-                source = rife(source, model="rife-v4.6", scale=2.5)
+            fr_scale = config.get('interp', {}).get('scale', DEFAULT_SCALE)
+            if not os.path.exists(target) or len(os.listdir(target)) < int(len(os.listdir(source))*fr_scale):
+                interp = config.get('interp', {})
+                # if config.get('intro') and os.path.exists(os.path.join(workdir, 'intro-interp')):
+                #     interp['intro'] = os.path.join(workdir, 'intro-interp')
+                source = rife(source, **interp)
+                # if config.get('intro') and not os.path.exists(os.path.join(workdir, 'intro-interp')):
+                #     os.makedirs(os.path.join(workdir, 'intro-interp'))
+                #     for file in glob.glob(os.path.join(source, '*.*'))[:config.get('intro')*fr_scale]:
+                #         shutil.copy2(file, os.path.join(workdir, 'intro-interp'))
                 os.rename(source, target)
             source = target
         
-            result = encode(source, file, destination=results_dir, framerate="60000/1001", prefix="")
+            result = encode(source, file, destination=results_dir, prefix="", **config.get('encoder', {}))
             os.rename(result, os.path.join(results_dir, video_name+".mkv"))
 
-        # for suffix in ["", "-sr", "-sr-interp", "-interp"]:
-        #     if os.path.exists(os.path.join(workdir, video_name+suffix)):
-        #         shutil.rmtree(os.path.join(workdir, video_name+suffix))
+        if config.get('cleanup') == False:
+            for suffix in ["", "-sr", "-sr-interp", "-interp"]:
+                if os.path.exists(os.path.join(workdir, video_name+suffix)):
+                    shutil.rmtree(os.path.join(workdir, video_name+suffix))
 
         print("Finished", f"{n+1}/{len(files)}", file, f"{(time.time()-start_time)/60:.2f}m")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--workdir', '-w', type=str, required=False, default=DEFAULT_SOURCE, help='Source folder path')
+    parser.add_argument('--workdir', '-w', type=str, required=False, default=DEFAULT_WORKDIR, help='Source folder path')
     args = parser.parse_args()
 
-    process(args.workdir)
+    config = {
+        'intro': 2278,
+        'cleanup': False,
+        'preprocess_fr': {
+            'start': 2,
+            'offset': 5
+        },
+        'preprocess_shape': {
+            'width': 640,
+            'height': 480
+        },
+        'interp': {
+            'scale': 2.5
+        },
+        'encoder': {
+            'framerate': '60000/1001',
+            'encoder_params': ["-crf", "26", "-preset", "veryslow", "-x265-params", "profile=main10"]
+        }
+    }
+
+    process(args.workdir, config=config)

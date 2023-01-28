@@ -1,5 +1,7 @@
 import argparse
+import glob
 import os
+import shutil
 import sys
 
 from system import call_subprocess
@@ -17,13 +19,24 @@ def process_output(line, amount):
     if n == amount:
         sys.stdout.write(f"Super Resolution {n}/{amount} {file}\n")
 
-def realesrgan(source, destination=None):
+def recycle_intro(source, intro, dest):
+    count = len(os.listdir(intro))
+    for file in glob.glob(os.path.join(intro, '*.*')):
+        shutil.copy2(file, dest)
+    for file in glob.glob(os.path.join(source, '*.*'))[:count]:
+        filename = os.path.basename(file)
+        os.rename(file, os.path.join(source+"-sr-done", filename))
+
+def realesrgan(source, destination=None, intro=None):
 
     dest = source+"-sr"
     if destination:
         dest = destination
     os.makedirs(dest, exist_ok=True)
     os.makedirs(source+"-sr-done", exist_ok=True)
+
+    if intro:
+        recycle_intro(source, intro, dest)
 
     amount = len(os.listdir(source))
     amount += len(os.listdir(source+"-sr-done"))
