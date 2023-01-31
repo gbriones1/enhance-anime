@@ -67,7 +67,7 @@ def process(workdir=DEFAULT_WORKDIR, config={}):
             result = encode(source, file, destination=results_dir, prefix="", **config.get('encoder', {}))
             os.rename(result, os.path.join(results_dir, video_name+".mkv"))
 
-        if config.get('cleanup') == False:
+        if config.get('cleanup', True):
             for suffix in ["", "-sr", "-sr-interp", "-interp"]:
                 if os.path.exists(os.path.join(workdir, video_name+suffix)):
                     shutil.rmtree(os.path.join(workdir, video_name+suffix))
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         },
         'encoder': {
             'framerate': '60000/1001',
-            'encoder_params': ["-crf", "26", "-preset", "veryslow", "-x265-params", "profile=main10"]
+            'encoder_params': ["-crf", "26", "-preset", "slow", "-x265-params", "profile=main10"]
         }
     }
 

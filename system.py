@@ -24,6 +24,15 @@ def call_subprocess(cmd_list: list, patterns=[], environment=None, quiet=True, p
                         if match:
                             if pattern_callback:
                                 pattern_callback(line.rstrip().decode("utf-8"), **callback_conext)
+                if process.stderr:
+                    for line in process.stderr:
+                        if not quiet:
+                            print("{}".format(line.rstrip().decode("utf-8")))
+                        for pattern in patterns:
+                            match = re.search(rf'{pattern}', str(line)) 
+                            if match:
+                                if pattern_callback:
+                                    pattern_callback(line.rstrip().decode("utf-8"), **callback_conext)
             result = process.poll()
             if result != 0:
                 raise subprocess.CalledProcessError(result, process.args)
