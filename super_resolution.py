@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 
+from recycling import find_img
 from system import call_subprocess
 
 DEFAULT_MODEL = "realesr-animevideov3"
@@ -20,14 +21,30 @@ def process_output(line, amount):
         sys.stdout.write(f"Super Resolution {n}/{amount} {file}\n")
 
 def recycle_intro(source, intro, dest):
-    count = len(os.listdir(intro))
     for file in glob.glob(os.path.join(intro, '*.*')):
         shutil.copy2(file, dest)
-    for file in glob.glob(os.path.join(source, '*.*'))[:count]:
         filename = os.path.basename(file)
-        os.rename(file, os.path.join(source+"-sr-done", filename))
+        os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
+        sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
+    sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
-def realesrgan(source, destination=None, intro=None):
+def recycle_outro(source, outro, dest):
+    outro_files = glob.glob(os.path.join(outro, '*.*'))
+    source_outro = find_img(outro_files[0], source, margin=500)
+    for file in outro_files:
+        shutil.copy2(file, dest)
+
+    source_number = "".join([x for x in os.path.basename(source_outro) if x.isdigit()])
+    source_start = int(source_number)
+    source_prefix = source_outro.split(source_number)
+    for frame in range(source_start, source_start+len(outro_files)):
+        file = "".join([source_prefix[0], f"{frame:08d}", source_prefix[1]])
+        filename = os.path.basename(file)
+        os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
+        sys.stdout.write(f"Recycling outtro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
+    sys.stdout.write(f"Recycling outro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
+
+def realesrgan(source, destination=None, intro=None, outro=None):
 
     dest = source+"-sr"
     if destination:
@@ -37,6 +54,9 @@ def realesrgan(source, destination=None, intro=None):
 
     if intro:
         recycle_intro(source, intro, dest)
+    
+    if outro:
+        recycle_outro(source, outro, dest)
 
     amount = len(os.listdir(source))
     amount += len(os.listdir(source+"-sr-done"))
