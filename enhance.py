@@ -42,7 +42,7 @@ def process(workdir=DEFAULT_WORKDIR, config={}):
                 sr = config.get('sr', {})
                 if config.get('intro') and os.path.exists(os.path.join(workdir, 'intro-sr')):
                     sr['intro'] = os.path.join(workdir, 'intro-sr')
-                if config.get('outtro') and os.path.exists(os.path.join(workdir, 'outro-sr')):
+                if config.get('outro') and os.path.exists(os.path.join(workdir, 'outro-sr')):
                     sr['outro'] = os.path.join(workdir, 'outro-sr')
                 source = realesrgan(source, **sr)
                 if config.get('intro') and not os.path.exists(os.path.join(workdir, 'intro-sr')):

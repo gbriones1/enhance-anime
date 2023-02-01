@@ -24,7 +24,8 @@ def recycle_intro(source, intro, dest):
     for file in glob.glob(os.path.join(intro, '*.*')):
         shutil.copy2(file, dest)
         filename = os.path.basename(file)
-        os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
+        if not os.path.exists(os.path.join(source+"-sr-done", filename)):
+            os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
         sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
     sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
@@ -40,7 +41,8 @@ def recycle_outro(source, outro, dest):
     for frame in range(source_start, source_start+len(outro_files)):
         file = "".join([source_prefix[0], f"{frame:08d}", source_prefix[1]])
         filename = os.path.basename(file)
-        os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
+        if not os.path.exists(os.path.join(source+"-sr-done", filename)):
+            os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
         sys.stdout.write(f"Recycling outtro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
     sys.stdout.write(f"Recycling outro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
