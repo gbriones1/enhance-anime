@@ -21,7 +21,7 @@ def process_output(line, amount):
         sys.stdout.write(f"Super Resolution {n}/{amount} {file}\n")
 
 def recycle_intro(source, intro, dest):
-    for file in glob.glob(os.path.join(intro, '*.*')):
+    for file in sorted(glob.glob(os.path.join(intro, '*.*'))):
         shutil.copy2(file, dest)
         filename = os.path.basename(file)
         if not os.path.exists(os.path.join(source+"-sr-done", filename)):
@@ -30,21 +30,27 @@ def recycle_intro(source, intro, dest):
     sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
 def recycle_outro(source, outro, dest):
-    outro_files = glob.glob(os.path.join(outro, '*.*'))
-    source_outro = find_img(outro_files[0], source, margin=500)
-    for file in outro_files:
-        shutil.copy2(file, dest)
+    outro_files = sorted(glob.glob(os.path.join(outro, '*.*')))
+    source_outro = find_img(outro_files[0], source, margin=200)
+    if source_outro:
+        source_number = "".join([x for x in os.path.basename(source_outro) if x.isdigit()])
+        source_start = int(source_number)
+        source_prefix = source_outro.split(source_number)
 
-    source_number = "".join([x for x in os.path.basename(source_outro) if x.isdigit()])
-    source_start = int(source_number)
-    source_prefix = source_outro.split(source_number)
-    for frame in range(source_start, source_start+len(outro_files)):
-        file = "".join([source_prefix[0], f"{frame:08d}", source_prefix[1]])
-        filename = os.path.basename(file)
-        if not os.path.exists(os.path.join(source+"-sr-done", filename)):
-            os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
-        sys.stdout.write(f"Recycling outtro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
-    sys.stdout.write(f"Recycling outro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
+        count = source_start
+        for file in outro_files:
+            new_filename = os.path.basename("".join([source_prefix[0], f"{count:08d}", source_prefix[1]]))
+            shutil.copy2(file, os.path.join(dest, new_filename))
+            count += 1
+
+        for frame in range(source_start, source_start+len(outro_files)):
+            file = "".join([source_prefix[0], f"{frame:08d}", source_prefix[1]])
+            filename = os.path.basename(file)
+            if not os.path.exists(os.path.join(source+"-sr-done", filename)):
+                print(os.path.join(source, filename))
+                os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
+            sys.stdout.write(f"Recycling outtro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
+        sys.stdout.write(f"Recycling outro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
 def realesrgan(source, destination=None, intro=None, outro=None):
 

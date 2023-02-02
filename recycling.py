@@ -38,7 +38,7 @@ def find_img(img_file, folder, margin=None):
         simm = structural_similarity(img1, img2)
 
         errors[simm] = file
-        sys.stdout.write(f"Finding simmilarities {img_file} -> {file}: {simm}\r")
+        sys.stdout.write(f"Finding simmilar {img_file} -> {file}: {simm:.2f}\r")
     sys.stdout.write(f"\n")
 
 
@@ -55,7 +55,7 @@ def find_img(img_file, folder, margin=None):
     #     print(worst, errors[worst])
     if max_ < 0.9:
         print("Similar not found")
-        exit(1)
+        return
     return errors[max_]
 
 
