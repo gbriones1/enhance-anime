@@ -40,7 +40,8 @@ def encode(source: str, audio_origin: str, framerate:str = DEFAULT_FRAMERATE, de
         "-i", f"{source}/{prefix}%08d.{format}",
         "-i", audio_origin,
         "-map", "0:v:0",
-        "-map", "1:a:0",
+        "-map", "1:a",
+        "-map", "1:s",
         "-c:a", "copy",
         "-c:v", encoder
     ]

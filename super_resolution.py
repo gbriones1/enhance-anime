@@ -26,8 +26,8 @@ def recycle_intro(source, intro, dest):
         filename = os.path.basename(file)
         if not os.path.exists(os.path.join(source+"-sr-done", filename)):
             os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
-        sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
-    sys.stdout.write(f"Recycling intro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
+        sys.stdout.write(f"Recycle {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
+    sys.stdout.write(f"Recycle {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
 def recycle_outro(source, outro, dest):
     outro_files = sorted(glob.glob(os.path.join(outro, '*.*')))
@@ -49,8 +49,8 @@ def recycle_outro(source, outro, dest):
             if not os.path.exists(os.path.join(source+"-sr-done", filename)):
                 print(os.path.join(source, filename))
                 os.rename(os.path.join(source, filename), os.path.join(source+"-sr-done", filename))
-            sys.stdout.write(f"Recycling outtro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
-        sys.stdout.write(f"Recycling outro {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
+            sys.stdout.write(f"Recycle {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\r")
+        sys.stdout.write(f"Recycle {os.path.join(source, filename)} -> {os.path.join(source+'-sr-done', filename)}\n")
 
 def realesrgan(source, destination=None, intro=None, outro=None):
 

@@ -84,7 +84,7 @@ if __name__ == '__main__':
     config = {
         'intro': 2278,
         'outro': 30092,
-        'cleanup': False,
+        'cleanup': True,
         'preprocess_fr': {
             'start': 2,
             'offset': 5
@@ -101,5 +101,23 @@ if __name__ == '__main__':
             'encoder_params': ["-crf", "26", "-preset", "slow", "-x265-params", "profile=main10"]
         }
     }
+    
+    config = {
+        'intro': 1909,
+        'outro': 32009,
+        'cleanup': False,
+        'preprocess_shape': {
+            'width': 640,
+            'height': 480
+        },
+        'interp': {
+            'scale': 2.5
+        },
+        'encoder': {
+            'framerate': '60000/1001',
+            'encoder_params': ["-crf", "26", "-preset", "slow", "-x265-params", "profile=main10"]
+        }
+    }
+
 
     process(args.workdir, config=config)
