@@ -3,19 +3,21 @@ import glob
 import os
 import sys
 
-DEFAULT_START = 2
+DEFAULT_STARTS = []
 DEFAULT_OFFSET = 5
 
-def decrease(source, start=DEFAULT_START, offset=DEFAULT_OFFSET):
+def decrease(source, starts=DEFAULT_STARTS, offset=DEFAULT_OFFSET):
 
     files = sorted(glob.glob(os.path.join(source, '*.*')))
     for n, file in enumerate(files[:]):
         action = 'kept back'
-        if (n+2+start) % offset == 0:
-            action = 'removed'
-            os.remove(file)
+        for start in starts:
+            if (n+2+start) % offset == 0:
+                action = 'removed'
+                os.remove(file)
+                break
 
-        sys.stdout.write(f"Frame rate reduce {n+1}/{len(files)} {file} {action}\r")
+        sys.stdout.write(f"Frame rate reduce {n+1}/{len(files)} {file} {action}\n")
     sys.stdout.write(f"Frame rate reduce {n+1}/{len(files)} {file} {action}\n")
     
     files = sorted(glob.glob(os.path.join(source, '*.*')))
@@ -30,9 +32,11 @@ def decrease(source, start=DEFAULT_START, offset=DEFAULT_OFFSET):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('action', type=str, choices=["decrease"], help="action to execute")
     parser.add_argument('source', type=str, help='Source folder path')
-    parser.add_argument('--start', type=int, required=False, default=DEFAULT_START, help='Starting frame to be removed')
+    parser.add_argument('--start', type=int, action="append", required=False, default=DEFAULT_STARTS, help='Starting frame to be removed')
     parser.add_argument('--offset', type=int, required=False, default=DEFAULT_OFFSET, help='Offset for frames to be removed')
     args = parser.parse_args()
 
-    decrease(args.source, args.start, args.offset)
+    if args.action == "decrease":
+        decrease(args.source, args.start, args.offset)
